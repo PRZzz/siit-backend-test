@@ -9,7 +9,7 @@ class RentalSerializer
       options: @rental.options,
       actions: [
         serialize_action('driver', 'debit', @rental.total_price),
-        serialize_action('owner', 'credit', @rental.price_due_to_owner),
+        serialize_action('owner', 'credit', @rental.credit_for_owner),
         serialize_action('insurance', 'credit', @rental.insurance_fee),
         serialize_action('assistance', 'credit', @rental.assistance_fee),
         serialize_action('drivy', 'credit', @rental.drivy_fee),

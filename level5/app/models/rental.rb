@@ -7,10 +7,10 @@ class Rental
     ADDITIONAL_INSURANCE = 'additional_insurance'.freeze
   end
 
-  ASSISTANCE_PRICE_PER_DAY = 100
+  ASSISTANCE_FEE_PER_DAY = 100
   GPS_PRICE_PER_DAY = 500
   BABY_SEAT_PRICE_PER_DAY = 200
-  ADDITIONAL_INSURANCE_PRICE_PER_DAY = 1000
+  ADDITIONAL_INSURANCE_FEE_PER_DAY = 1000
 
   attr_reader :id, :car, :start_date, :end_date, :distance, :options
 
@@ -23,35 +23,31 @@ class Rental
     @options = options
   end
 
-  def travel_price
-    @travel_price ||= price_for_duration + price_for_distance
-  end
-
   def total_price
-    @total_price ||= price_for_duration + price_for_distance + gps_price + baby_seat_price + additional_insurance_price
+    @total_price ||= travel_price + gps_fee + baby_seat_fee + additional_insurance_fee
   end
 
-  def price_due_to_owner
-    @price_due_to_owner ||= (travel_price * 0.7).to_i + gps_price + baby_seat_price
+  def credit_for_owner
+    @credit_for_owner ||= (travel_price * 0.7).to_i + gps_fee + baby_seat_fee
   end
 
-  def commission_price
-    @commission_price ||= (travel_price * 0.3).to_i
+  def commission_fee
+    @commission_fee ||= (travel_price * 0.3).to_i
   end
 
   def insurance_fee
-    @insurance_fee ||= commission_price / 2
+    @insurance_fee ||= commission_fee / 2
   end
 
   def assistance_fee
-    @assistance_fee ||= duration * ASSISTANCE_PRICE_PER_DAY
+    @assistance_fee ||= duration * ASSISTANCE_FEE_PER_DAY
     raise "assistance_fee is too big" if @assistance_fee > insurance_fee # NOTE: we might want to handle this case differently
 
     @assistance_fee
   end
 
   def drivy_fee
-    @drivy_fee ||= commission_price - insurance_fee - assistance_fee + additional_insurance_price
+    @drivy_fee ||= commission_fee - insurance_fee - assistance_fee + additional_insurance_fee
     raise "drivy_fee is negative" if @drivy_fee.negative? # NOTE: we might want to handle this case differently
 
     @drivy_fee
@@ -61,6 +57,10 @@ class Rental
 
   def duration
     (end_date - start_date).to_i + 1
+  end
+
+  def travel_price
+    @travel_price ||= price_for_duration + price_for_distance
   end
 
   def price_for_duration
@@ -85,8 +85,8 @@ class Rental
     distance * car.price_per_km
   end
 
-  def gps_price
-    @gps_price ||=
+  def gps_fee
+    @gps_fee ||=
       if @options.include?(OptionTypes::GPS)
         (duration * GPS_PRICE_PER_DAY)
       else
@@ -94,8 +94,8 @@ class Rental
       end
   end
 
-  def baby_seat_price
-    @baby_seat_price ||=
+  def baby_seat_fee
+    @baby_seat_fee ||=
       if @options.include?(OptionTypes::BABY_SEAT)
         (duration * BABY_SEAT_PRICE_PER_DAY)
       else
@@ -103,10 +103,10 @@ class Rental
       end
   end
 
-  def additional_insurance_price
-    @additional_insurance_price ||=
+  def additional_insurance_fee
+    @additional_insurance_fee ||=
       if @options.include?(OptionTypes::ADDITIONAL_INSURANCE)
-        duration * ADDITIONAL_INSURANCE_PRICE_PER_DAY
+        duration * ADDITIONAL_INSURANCE_FEE_PER_DAY
       else
         0
       end
