@@ -28,11 +28,11 @@ class Rental
   end
 
   def credit_for_owner
-    @credit_for_owner ||= (travel_price * 0.7).to_i + gps_fee + baby_seat_fee
+    @credit_for_owner ||= ((travel_price * 70) / 100) + gps_fee + baby_seat_fee
   end
 
   def commission_fee
-    @commission_fee ||= (travel_price * 0.3).to_i
+    @commission_fee ||= (travel_price * 30) / 100
   end
 
   def insurance_fee
@@ -70,15 +70,15 @@ class Rental
       if day < 1
         result += car.price_per_day
       elsif day < 4
-        result += (car.price_per_day * 0.9)
+        result += (car.price_per_day * 90) / 100
       elsif day < 10
-        result += (car.price_per_day * 0.7)
+        result += (car.price_per_day * 70) / 100
       else
-        result += (car.price_per_day * 0.5)
+        result += (car.price_per_day * 50) / 100
       end
     end
 
-    result.to_i
+    result
   end
 
   def price_for_distance
