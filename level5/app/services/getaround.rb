@@ -5,17 +5,15 @@ require './app/models/rental'
 require './app/serializers/rental_serializer'
 
 class Getaround
-  attr_reader :cars, :rentals
-
   def initialize(data_file_path)
     data = JSON.parse(File.read(data_file_path))
 
-    @cars = load_cars(data['cars'])
+    @cars_by_id = load_cars(data['cars'])
     @rentals = load_rentals(data['rentals'], data['options'])
   end
 
   def run(result_file_path)
-    rentals_serialization = @rentals.values.map do |rental|
+    rentals_serialization = @rentals.map do |rental|
       RentalSerializer.new(rental).as_json
     end
 
@@ -37,15 +35,15 @@ class Getaround
   end
 
   def load_rentals(rentals_data, options_data)
-    rentals_data.each_with_object({}) do |rental_data, result|
+    rentals_data.each_with_object([]) do |rental_data, result|
       rental_id = rental_data['id']
       car_id = rental_data['car_id']
 
       options = options_data.filter_map { |d| d['type'] if d['rental_id'] == rental_id }
 
-      result[rental_id] = Rental.new(
+      result << Rental.new(
         rental_id,
-        @cars[car_id],
+        @cars_by_id[car_id],
         rental_data['start_date'],
         rental_data['end_date'],
         rental_data['distance'],
